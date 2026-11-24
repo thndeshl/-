@@ -8,5 +8,5 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
 @app.get("/")
-def read_root(request: Request):
-    return templates.TemplateResponse("base.html", {"request": request})
+def home(request: Request):
+    return templates.TemplateResponse(request, "base.html")
