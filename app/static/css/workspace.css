@@ -1,0 +1,78 @@
+/* 담당 C: 워크스페이스 — 페이지 행 일체형(B안), md 6-1 그림
+   #toolbar(.viewer-nav C · #search-box B) / #pdf-viewer 안에 .page-row 행 (좌 슬롯 · 페이지 · 우 슬롯) */
+
+.workspace {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100vh;
+  margin: 0;
+}
+
+#toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 12px;
+  border-bottom: 1px solid #d0d0d0;
+  background: #fafafa;
+}
+
+#search-box {
+  margin-left: auto;  /* 툴바 오른쪽 */
+}
+
+/* #toolbar 안 C 전용 영역 (viewer.js가 만듦) */
+.viewer-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.viewer-status {
+  min-width: 72px;
+  text-align: center;
+}
+
+/* 스크롤 컨테이너. 행 사이 간격(gap)은 viewer.js가 읽어서 쓴다 */
+#pdf-viewer {
+  position: relative;        /* viewer.js가 행의 offsetTop 기준으로 쓴다 */
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  scrollbar-gutter: stable;  /* 스크롤바가 생길 때 폭이 바뀌어 다시 그리는 일 방지 */
+  padding: 16px;
+  background: #e9e9ec;
+}
+
+/* 행 높이는 viewer.js가 페이지 표시 높이로 정한다 */
+.page-row {
+  flex: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);  /* 메모가 넘쳐도 행이 커지지 않게 */
+  column-gap: 12px;
+}
+
+.page-canvas-wrap {
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+.page-canvas-wrap canvas {
+  display: block;
+}
+
+/* D가 채우는 메모 슬롯: 넘치면 슬롯 안에서만 세로 스크롤 */
+.memo-slot {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px;
+  border-radius: 4px;
+  background: #fffbe6;
+}
+
+.viewer-tail {
+  flex: none;
+}

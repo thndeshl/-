@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>뷰어 단독 테스트 (담당 C, B안)</title>
+  <!-- pudin 폴더에서 python -m http.server 8001 실행 후
+       http://localhost:8001/dev/viewer_test.html?pdf=large.pdf
+       ?autotest=1 을 붙이면 완료 확인 항목을 자동으로 검사해 화면 오른쪽 아래에 결과를 표시한다 -->
+  <link rel="stylesheet" href="../app/static/css/workspace.css">
+  <style>
+    body { margin: 0; font-family: sans-serif; }
+    .memo { margin-bottom: 6px; padding: 6px; background: #fff3a8; border-radius: 3px; font-size: 13px; }
+    #dev-panel { position: fixed; right: 8px; bottom: 8px; width: 340px; max-height: 45vh; overflow: auto;
+                 padding: 8px; font: 12px/1.4 monospace; white-space: pre-wrap; word-break: break-all;
+                 background: rgba(0, 0, 0, .8); color: #fff; border-radius: 6px; z-index: 10; }
+  </style>
+</head>
+<body>
+  <div class="workspace">
+    <div id="toolbar">
+      <div id="search-box"><input type="search" placeholder="(B 자리) 검색" disabled></div>
+    </div>
+    <div id="pdf-viewer" data-document-id="1" data-pdf-url="sample.pdf"></div>
+  </div>
+  <div id="dev-panel"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    // 테스트용: ?pdf=large.pdf 처럼 주소 뒤에 붙이면 다른 PDF로 바꿔 연다
+    var params = new URLSearchParams(location.search);
+    if (params.get('pdf')) document.getElementById('pdf-viewer').dataset.pdfUrl = params.get('pdf');
+
+    var log = { ready: [], change: [] };
+    var panel = document.getElementById('dev-panel');
+    function show(extra) {
+      var last = log.change[log.change.length - 1];
+      panel.textContent =
+        'pagesready ' + log.ready.length + '회 ' + JSON.stringify(log.ready[0] || {}) + '\n' +
+        'pagechange ' + log.change.length + '회, 마지막 ' + JSON.stringify(last || {}) + '\n' +
+        '그려진 페이지 ' + JSON.stringify(drawnPages()) + (extra ? '\n\n' + extra : '');
+    }
+
+    // 지금 canvas가 들어 있는 페이지 번호
+    function drawnPages() {
+      return Array.from(document.querySelectorAll('.page-canvas-wrap canvas'))
+        .map(function (c) { return Number(c.closest('.page-row').dataset.page); });
+    }
+
+    // 임시 리스너 (D 역할 흉내): viewer.js보다 먼저 등록해야 처음 여는 이벤트도 받는다
+    window.addEventListener('pudin:pagesready', function (e) {
+      log.ready.push(e.detail);
+      console.log('pudin:pagesready', e.detail);
+      // 가짜 메모: 실제로는 D가 GET /api/documents/{id}/memos 결과를 슬롯에 넣는다
+      var fake = [[1, 'left', 1], [1, 'right', 2], [2, 'right', 3], [3, 'left', 40], [10, 'left', 2], [10, 'right', 1]];
+      fake.forEach(function (f) {
+        var slot = document.querySelector('.memo-slot[data-page="' + f[0] + '"][data-side="' + f[1] + '"]');
+        for (var i = 1; slot && i <= f[2]; i++) {
+          slot.insertAdjacentHTML('beforeend', '<div class="memo">' + f[0] + '쪽 ' + f[1] + ' 메모 ' + i + '</div>');
+        }
+      });
+      show();
+    });
+    window.addEventListener('pudin:pagechange', function (e) {
+      log.change.push(e.detail);
+      console.log('pudin:pagechange', e.detail);
+      show();
+    });
+
+    // 그려진 페이지가 바뀌면 콘솔에 출력 (완료 확인 5)
+    var lastDrawn = '';
+    setInterval(function () {
+      var d = JSON.stringify(drawnPages());
+      if (d !== lastDrawn) { lastDrawn = d; console.log('[test] 그려진 페이지', d); show(); }
+    }, 300);
+  </script>
+  <script src="../app/static/js/viewer.js"></script>
+  <script>
+    // ?autotest=1 : 완료 확인 항목 자동 검사
+    if (params.get('autotest')) (async function () {
+      var wait = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+      var V = window.PudinViewer, root = document.getElementById('pdf-viewer');
+      var out = [], ok = function (name, pass, info) { out.push((pass ? 'PASS ' : 'FAIL ') + name + (info ? '  ' + info : '')); };
+      var row = function (n) { return document.querySelector('.page-row[data-page="' + n + '"]'); };
+      var visibleRange = function () {
+        var r = root.getBoundingClientRect(), v = [];
+        document.querySelectorAll('.page-row').forEach(function (el) {
+          var b = el.getBoundingClientRect();
+          if (b.bottom > r.top && b.top < r.bottom) v.push(Number(el.dataset.page));
+        });
+        return [Math.min.apply(null, v), Math.max.apply(null, v)];
+      };
+      var nearOnly = function () {
+        var v = visibleRange(), d = drawnPages();
+        return d.length > 0 && d.every(function (n) { return n >= v[0] - 1 && n <= v[1] + 1; });
+      };
+      try {
+        for (var t = 0; t < 100 && !log.ready.length; t++) await wait(100);
+        await wait(1500);
+        var total = document.querySelectorAll('.page-row').length;
+
+        // 2. pagesready 1번, totalPages 일치
+        ok('2 pagesready 1회', log.ready.length === 1, 'count=' + log.ready.length);
+        ok('2 totalPages = 행 수', log.ready[0].totalPages === total && total >= 20, 'totalPages=' + log.ready[0].totalPages + ' rows=' + total);
+        ok('처음 열 때 pagechange(1)', log.change.length === 1 && log.change[0].page === 1);
+
+        // 5. 화면 근처만 그림
+        ok('5 근처 페이지만 canvas', nearOnly(), 'visible=' + visibleRange() + ' drawn=' + JSON.stringify(drawnPages()));
+
+        // 1·3. 연속 스크롤: 조금씩 내리며 pagechange가 1씩, 바뀔 때만 발생
+        var start = log.change.length, steps = 0;
+        var end = row(25).offsetTop;
+        for (var y = 0; y <= end; y += 120) { root.scrollTop = y; steps++; await wait(40); }
+        var seq = log.change.slice(start).map(function (d) { return d.page; });
+        var monotonic = seq.every(function (p, i) { return p === (i ? seq[i - 1] : 1) + 1; });
+        ok('3 스크롤 중 pagechange는 바뀔 때만, 1씩 증가', monotonic && seq.length < steps, steps + '회 스크롤 → 이벤트 ' + seq.length + '회 ' + JSON.stringify(seq));
+        ok('3 detail.page = getCurrentPage()', log.change[log.change.length - 1].page === V.getCurrentPage());
+        await wait(800);
+        ok('5 스크롤 후에도 근처만 canvas', nearOnly(), 'visible=' + visibleRange() + ' drawn=' + JSON.stringify(drawnPages()));
+
+        // 1. 슬롯이 행과 함께 움직임 (같은 top)
+        var r10 = row(10).getBoundingClientRect(), s10 = row(10).querySelectorAll('.memo-slot');
+        var before = r10.top;
+        root.scrollTop += 200; await wait(50);
+        var moved = row(10).getBoundingClientRect().top - before;
+        ok('1 좌우 슬롯 top = 행 top (함께 스크롤)', Array.from(s10).every(function (s) {
+          return Math.abs(s.getBoundingClientRect().top - row(10).getBoundingClientRect().top) < 1;
+        }) && Math.abs(moved + 200) < 1, 'moved=' + moved);
+
+        // 4. goToPage / getCurrentPage
+        var c = log.change.length;
+        var r1 = V.goToPage(10);
+        ok('4 goToPage(10) → getCurrentPage()=10', r1 === true && V.getCurrentPage() === 10, 'current=' + V.getCurrentPage());
+        await wait(200);
+        var b = row(10).getBoundingClientRect(), rr = root.getBoundingClientRect(), mid = rr.top + root.clientHeight / 2;
+        ok('4 10페이지 행이 중앙선에 걸림', b.top <= mid && b.bottom >= mid, 'rowTop-viewerTop=' + Math.round(b.top - rr.top));
+        ok('4 pagechange 1번만 발생', log.change.length === c + 1 && log.change[c].page === 10, 'events=' + (log.change.length - c));
+        c = log.change.length;
+        var st = root.scrollTop;
+        var r2 = V.goToPage(999), r3 = V.goToPage(0), r4 = V.goToPage('abc');
+        await wait(200);
+        ok('4 goToPage(999)/0/abc 무시', !r2 && !r3 && !r4 && V.getCurrentPage() === 10 && root.scrollTop === st && log.change.length === c);
+        V.goToPage(10); await wait(200);
+        ok('3 같은 페이지 goToPage(10) 재호출 → 이벤트 없음', log.change.length === c);
+        V.goToPage(total); await wait(300);
+        ok('4 goToPage(마지막) → 마지막 페이지', V.getCurrentPage() === total, 'current=' + V.getCurrentPage());
+
+        // 6. 메모 넘치는 슬롯
+        V.goToPage(3); await wait(300);
+        var s3 = document.querySelector('.memo-slot[data-page="3"][data-side="left"]');
+        ok('6 메모 40개 슬롯: 행 높이 유지, 슬롯 안 스크롤', s3.offsetHeight === row(3).offsetHeight && s3.scrollHeight > s3.clientHeight && row(3).offsetHeight === row(4).offsetHeight,
+          'slot=' + s3.offsetHeight + ' row3=' + row(3).offsetHeight + ' row4=' + row(4).offsetHeight + ' scrollH=' + s3.scrollHeight);
+
+        // 이전/다음 버튼
+        c = log.change.length;
+        document.querySelector('.viewer-next').click();
+        var n1 = V.getCurrentPage();
+        document.querySelector('.viewer-prev').click();
+        ok('이전/다음 버튼 = goToPage(현재±1)', n1 === 4 && V.getCurrentPage() === 3, 'next→' + n1 + ' prev→' + V.getCurrentPage());
+      } catch (err) {
+        out.push('ERROR ' + (err && err.stack || err));
+      }
+      var pre = document.createElement('pre');
+      pre.id = 'autotest';
+      pre.textContent = out.join('\n');
+      document.body.appendChild(pre);
+      show(out.join('\n'));
+      console.log(out.join('\n'));
+    })();
+  </script>
+</body>
+</html>
