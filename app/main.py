@@ -1,6 +1,10 @@
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from app.database import engine, Base
+from app.models import user  # User 모델 등록
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Pudin API")
 
