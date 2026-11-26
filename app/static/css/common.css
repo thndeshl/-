@@ -1,0 +1,146 @@
+:root {
+  --bg-cream: #FBF7F2;
+  --header-brown: #4E342E;
+  --accent-caramel: #D37A3B;
+  --accent-hover: #B8652B;
+  --text-dark: #3E2723;
+  --text-muted: #795548;
+  --border-soft: #E6DDD3;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-cream);
+  color: var(--text-dark);
+  font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Noto Sans KR", sans-serif;
+  min-height: 100vh;
+}
+
+/* 상단 브라운 헤더 */
+.top-header {
+  background-color: var(--header-brown);
+  color: #FFFFFF;
+  height: 56px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #FFFFFF;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.brand-logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.main-container {
+  padding: 32px 24px;
+}
+
+/* 로그인/회원가입 카드 */
+.auth-card {
+  max-width: 400px;
+  margin: 48px auto;
+  background: #FFFFFF;
+  border: 1px solid var(--border-soft);
+  border-radius: 16px;
+  padding: 32px 28px;
+  box-shadow: 0 8px 24px rgba(78, 52, 46, 0.06);
+}
+
+.auth-card h1 {
+  font-size: 1.4rem;
+  margin-bottom: 6px;
+}
+
+.auth-subtitle {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 24px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.form-group input:focus {
+  border-color: var(--accent-caramel);
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 11px;
+  background-color: var(--accent-caramel);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.btn-primary:hover {
+  background-color: var(--accent-hover);
+}
+
+.btn-secondary {
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.error-text {
+  color: #D32F2F;
+  font-size: 0.85rem;
+  min-height: 20px;
+  margin-bottom: 4px;
+}
+
+.auth-footer {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.auth-footer a {
+  color: var(--accent-caramel);
+  font-weight: 600;
+  text-decoration: none;
+}

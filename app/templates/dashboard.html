@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}내 문서함 - Pudin{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="/static/css/dashboard.css" />
+{% endblock %}
+
+{% block nav %}
+  <span style="margin-right: 10px; font-size: 0.9rem;">{{ user.nickname }}님</span>
+  <button type="button" id="logout-btn" class="btn-secondary">로그아웃</button>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+  <aside class="sidebar-card">
+    <div class="sidebar-title">문서 분류</div>
+    <ul class="filter-list">
+      <li><button type="button" class="filter-btn active">전체 문서</button></li>
+      <li><button type="button" class="filter-btn">강의 자료</button></li>
+      <li><button type="button" class="filter-btn">읽기 목록</button></li>
+    </ul>
+  </aside>
+
+  <section class="dashboard-main">
+    <div class="dashboard-header">
+      <div>
+        <h1>내 문서함</h1>
+        <p class="dashboard-sub">{{ user.nickname }}님, 공부할 PDF를 골라 메모를 시작해 봐!</p>
+      </div>
+      <button type="button" id="upload-pdf-btn" class="btn-upload">+ PDF 업로드</button>
+    </div>
+
+    <div id="doc-list" class="doc-grid">
+      <article class="doc-card">
+        <div>
+          <span class="doc-badge">샘플 문서</span>
+          <h2 class="doc-title">제3장. 통계적 추론의 기초.pdf</h2>
+          <p class="doc-meta">업로드 준비 중 · 메모 4개</p>
+        </div>
+        <div class="doc-actions">
+          <a href="/workspace/1" class="btn-open">열기</a>
+        </div>
+      </article>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/auth.js"></script>
+{% endblock %}
