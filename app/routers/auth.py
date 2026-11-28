@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 import os
-from fastapi import APIRouter, Depends, HTTPException, Response, status
-from jose import jwt
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -74,3 +74,42 @@ def login(payload: UserLogin, response: Response, db: Session = Depends(get_db))
 def logout(response: Response):
     response.delete_cookie(key="access_token", path="/")
     return {"message": "로그아웃 되었습니다."}
+
+
+@router.get("/me", response_model=UserResponse)
+def get_me(
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    token = request.cookies.get("access_token")
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="로그인이 필요합니다.",
+        )
+
+    if token.startswith("Bearer "):
+        token = token.split(" ")[1]
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("sub")
+        if not user_id:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="유효하지 않은 토큰입니다.",
+            )
+        user = db.query(User).filter(User.id == int(user_id)).first()
+    except (JWTError, ValueError):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="유효하지 않은 토큰입니다.",
+        )
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="사용자를 찾을 수 없습니다.",
+        )
+
+    return user
