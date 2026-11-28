@@ -1,14 +1,27 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Pudin{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', path='/css/common.css') }}">
-    {% block head %}{% endblock %}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Pudin{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/common.css" />
+  {% block head %}{% endblock %}
 </head>
 <body>
+  <header class="top-header">
+    <a href="/dashboard" class="brand">
+      <img src="/static/img/logo.png" alt="Pudin 로고" class="brand-logo" />
+      <span>Pudin</span>
+    </a>
+    <nav id="nav-actions">
+      {% block nav %}{% endblock %}
+    </nav>
+  </header>
+
+  <main class="main-container">
     {% block content %}{% endblock %}
-    {% block scripts %}{% endblock %}
+  </main>
+
+  {% block scripts %}{% endblock %}
 </body>
 </html>

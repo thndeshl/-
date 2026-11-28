@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}워크스페이스 - Pudin{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="/static/css/workspace.css" />
+{% endblock %}
+
+{% block nav %}
+  <div class="workspace-header-actions">
+    <a href="/dashboard" class="btn-secondary" style="text-decoration: none;">내 문서함</a>
+    <button type="button" id="add-memo-btn" class="btn-memo-add">+ 메모 추가</button>
+    <button type="button" id="logout-btn" class="btn-secondary">로그아웃</button>
+  </div>
+{% endblock %}
+
+{% block content %}
+<div class="workspace-grid">
+  <!-- 왼쪽 메모 영역 -->
+  <aside id="memo-left" class="memo-column">
+    <div class="column-label">메모 <span class="count-pill">2</span></div>
+
+    <article class="memo-card memo-yellow">
+      <div class="memo-time">p.1 · 핵심 정리</div>
+      <h3>헷갈리는 α와 β 정리</h3>
+      <p>α는 제1종 오류를 허용할 최대 확률, β는 실제 효과를 놓칠 확률이다.</p>
+    </article>
+
+    <article class="memo-card memo-white">
+      <div class="memo-time">p.1 · 나의 용어 정리</div>
+      <h3>p-value ≠ 가설이 참일 확률</h3>
+      <p>귀무가설이 참이라고 가정했을 때의 데이터에 대한 확률이다.</p>
+    </article>
+  </aside>
+
+  <!-- 중앙 PDF 뷰어 영역 -->
+  <section id="pdf-viewer" class="pdf-panel">
+    <div class="pdf-toolbar">
+      <span>📄 PDF 뷰어 · 문서 #{{ document_id }}</span>
+      <div class="zoom-controls">
+        <button type="button" class="zoom-btn">-</button>
+        <span>100%</span>
+        <button type="button" class="zoom-btn">+</button>
+      </div>
+    </div>
+
+    <div class="pdf-canvas-placeholder">
+      <strong style="font-size: 1.05rem; color: var(--text-dark);">PDF 렌더링 영역 준비 완료</strong>
+      <p>Phase 2에서 PDF.js 뷰어와 실제 문서 파일이 이곳에 연결됩니다.</p>
+    </div>
+
+    <div class="pdf-pagination">
+      <span>p.1 / 1</span>
+      <span class="page-pill">1</span>
+    </div>
+  </section>
+
+  <!-- 오른쪽 메모 영역 -->
+  <aside id="memo-right" class="memo-column">
+    <div class="column-label">메모 <span class="count-pill">1</span></div>
+
+    <article class="memo-card memo-mint">
+      <div class="memo-time">p.1 · 참고 문헌</div>
+      <h3>조금 더 찾아볼 자료</h3>
+      <p>효과 크기와 검정력의 관계를 함께 읽으면 이해하기 좋을 듯!</p>
+    </article>
+  </aside>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/auth.js"></script>
+{% endblock %}
